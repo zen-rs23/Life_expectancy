@@ -1,0 +1,351 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+## LIFE EXPECTANCY EDA & PREDICTION
+
+#### Load the required libraries
+
+```{r}
+
+#install.packages("ggplot2")
+
+#install.packages("plotly")
+#install.packages("GGally")
+library(ggplot2)
+library(tidyr)
+library(GGally)
+library(dplyr)
+library(tidyverse)
+library(plotly)
+tinytex::install_tinytex(force = TRUE)
+ #package for animation
+
+```
+
+
+### Lets load the data set
+
+```{r}
+life_data <- read.csv('LifeExpectancyDataset2.csv ')
+```
+
+#### Column Names
+```{r}
+names(life_data)
+
+```
+
+#### We can see that the column names are too long so lets change the column names to short and valid #### to the datasets.
+
+```{r}
+life_data <- life_data %>%
+  rename(Meningitis = Deaths...Meningitis...Sex..Both...Age..All.Ages..Number. ,
+         Neoplasms = Deaths...Neoplasms...Sex..Both...Age..All.Ages..Number. ,
+         Fire = Deaths...Fire..heat..and.hot.substances...Sex..Both...Age..All.Ages..Number.,
+         Malaria = Deaths...Malaria...Sex..Both...Age..All.Ages..Number. ,
+         Drowning = Deaths...Drowning...Sex..Both...Age..All.Ages..Number. ,
+         Interpersonal_Violence = Deaths...Interpersonal.violence...Sex..Both...Age..All.Ages..Number. ,
+         HIV_AIDs = Deaths...HIV.AIDS...Sex..Both...Age..All.Ages..Number. ,
+         Drugs_Use_Disorders = Deaths...Drug.use.disorders...Sex..Both...Age..All.Ages..Number. ,
+         Tuberculosis = Deaths...Tuberculosis...Sex..Both...Age..All.Ages..Number. ,
+         Road_injuries = Deaths...Road.injuries...Sex..Both...Age..All.Ages..Number. ,
+         Maternal_Disorders = Deaths...Maternal.disorders...Sex..Both...Age..All.Ages..Number.,
+         Lower_respiratory_infections = Deaths...Lower.respiratory.infections...Sex..Both...Age..All.Ages..Number. ,
+         Neonatal_disorders = Deaths...Neonatal.disorders...Sex..Both...Age..All.Ages..Number. ,
+         Alcohol_use_disorders = Deaths...Alcohol.use.disorders...Sex..Both...Age..All.Ages..Number.,
+         Exposure_to_force_of_Nature = Deaths...Exposure.to.forces.of.nature...Sex..Both...Age..All.Ages..Number.,
+         Diarrheal_diseases = Deaths...Diarrheal.diseases...Sex..Both...Age..All.Ages..Number.,
+         Environmental_heat.cold= Deaths...Environmental.heat.and.cold.exposure...Sex..Both...Age..All.Ages..Number. ,
+         Nutritional_Deficiences = Deaths...Nutritional.deficiencies...Sex..Both...Age..All.Ages..Number. ,
+         Self_Harm = Deaths...Self.harm...Sex..Both...Age..All.Ages..Number. ,
+         Confilct_and_Terrorism = Deaths...Conflict.and.terrorism...Sex..Both...Age..All.Ages..Number. ,
+         Diabetes_mellitus = Deaths...Diabetes.mellitus...Sex..Both...Age..All.Ages..Number. ,
+         Poisonings = Deaths...Poisonings...Sex..Both...Age..All.Ages..Number. ,
+         Protein_Malnutrition = Deaths...Protein.energy.malnutrition...Sex..Both...Age..All.Ages..Number. ,
+         Terrorism = Terrorism..deaths. ,
+         Cardiovascular_disease = Deaths...Cardiovascular.diseases...Sex..Both...Age..All.Ages..Number.,
+         Chronic_Kidney_disease = Deaths...Chronic.kidney.disease...Sex..Both...Age..All.Ages..Number.,
+         Chronic_respiratory_disease = Deaths...Chronic.respiratory.diseases...Sex..Both...Age..All.Ages..Number.,
+         Cirrhosis_and_Liver_deisease = Deaths...Cirrhosis.and.other.chronic.liver.diseases...Sex..Both...Age..All.Ages..Number. ,
+         Digestive_disease = Deaths...Digestive.diseases...Sex..Both...Age..All.Ages..Number.,
+         Acute_Hepatitis = Deaths...Acute.hepatitis...Sex..Both...Age..All.Ages..Number.,
+         Alzheimers = Deaths...Alzheimer.s.disease.and.other.dementias...Sex..Both...Age..All.Ages..Number.,
+         Parkinsons = Deaths...Parkinson.s.disease...Sex..Both...Age..All.Ages..Number.
+  
+  )
+
+
+```
+
+
+#### Looking at the structure ,dimension and summary of the data set
+
+```{r}
+str(life_data)
+```
+
+```{r}
+dim(life_data) ##Shape of the data
+```
+
+```{r}
+summary(life_data) ##Description of the data
+```
+
+#### Lets have a look at our data sets
+```{r}
+head(life_data,5)
+```
+
+### Check if we have any null values
+```{r}
+colSums(is.na(life_data))
+```
+
+#### This gives us details of the null values in each column but doesnt provide in a 
+#### structured format so lets convert it into a data frame.
+
+```{r}
+as.data.frame(colSums(is.na(life_data)))
+```
+
+#### We can see here that Death by Terrorism has 2807 null values so we'll just impute it and replace all the null values with 0
+
+```{r}
+life_data$Terrorism..deaths.[is.na(life_data$Terrorism)] <- 0
+
+```
+
+#### Since the missing values in others columns are pretty minimal compared to the overall dataset so we'll be dropping rows with niull values(on an average 2% of data is missing)
+
+```{r}
+life_data <- life_data %>% 
+  drop_na()
+```
+
+##### lets verify if there's any other column with null values
+
+```{r}
+as.data.frame(colSums(is.na(life_data)))
+```
+
+##### So now we have handled all the missing values so we'll be checking other factors hereon.
+
+##### Let's check the correlation among all the parameters 
+
+```{r}
+data_num <- life_data %>% 
+  select_if(is.numeric)
+
+```
+
+```{r,eval=FALSE}
+ggcorr(data_num, 
+       method = c("pairwise","pearson"),
+       label = T, 
+       label_size = 2,
+       label_round = 2,
+       hjust = 1,
+       size = 3, 
+       color = "royalblue",
+       layout.exp = 5,
+       low = "green3", 
+       mid = "gray95", 
+       high = "darkorange",
+       name = "Correlation")
+```
+#### plotting a Life Expectancy histogram
+
+```{r, eval=FALSE}
+hist(life_data$Life.expectancy, col="darkmagenta", main="Life Expectancy Data")
+
+```
+
+
+#### Life Expectancy VS Population
+
+```{r}
+library(ggplot2)
+library(gapminder)
+population <- plot_ly(data = life_data,x=~Life.expectancy,
+                   y = ~Population, color=~Country,
+                   text = ~paste("Population", Population ,'$<br>Country:',Country),
+                   marker=list(size=5))
+  
+  population
+
+  ```
+
+
+```{r}
+gdp_country <- plot_ly(life_data,x=~Life.expectancy,
+                             y = ~GDP, color=~Country,
+                             text = ~paste("GDP", GDP ,'$<br>Country:',Country),
+                             frame = ~Year, type='scatter',mode='markers') %>%
+  layout(title="Life Expectancy vs GDP of countries in every year")
+
+gdp_country <- gdp_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+gdp_country
+
+
+```
+
+##### We know that malaria was one of disease that caused many deaths so lets check itbelow:
+
+```{r}
+ bp <- plot_ly(life_data, x=~Life.expectancy,y=~Malaria, color = ~as.factor(Year), 
+                type="bar",boxpoints = "all", jitter = 0.4,pointpos = -1.8) %>% 
+                  layout(title = "Malaria ", xaxis = list(title = "Life Expectancy  and Malaria", showgrid = F))
+  
+  bp
+
+
+
+```
+
+
+#### Infant Deaths based on Country
+
+
+```{r, echo=TRUE}
+infants_country <- plot_ly(life_data, x=~Life.expectancy,
+                             y = ~infantMortality, color=~Country,
+                             text = ~paste("Infant Mortality", infantMortality ,'$<br>Country:',Country),
+                             frame = ~Year, type='scatter',mode='markers',
+                             marker = list(size=15)) 
+
+infants_country <- infants_country %>% layout(title="Life Expectancy Vs Infant Deaths based on Country Year Wise")
+
+infants_country <- infants_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+infants_country
+```
+
+#### Subplots of Life Expectancy Vs Disease
+
+```{r}
+
+fig1 <- plot_ly(life_data,x = ~Life.expectancy, y = ~Acute_Hepatitis, type = 'scatter', 
+                  mode = 'lines+markers') 
+  
+  
+  fig2 <- plot_ly(life_data,x = ~Life.expectancy, y = ~Diabetes_mellitus, type = 'scatter', 
+                  mode = 'lines+markers') 
+  
+  
+  fig3 <- plot_ly(life_data,x = ~Life.expectancy, y = ~HIV_AIDs, type = 'scatter', 
+                  mode = 'lines+markers') 
+  fig4 <- plot_ly(life_data,x = ~Life.expectancy, y = ~Tuberculosis, type = 'scatter', 
+                  mode = 'lines+markers') 
+  
+  fig <- subplot(fig1, fig2, fig3,fig4, nrows = 2) %>% 
+    
+  layout(title = list(text = " Life Expectancy Subplots"),
+           plot_bgcolor='#e5ecf6', 
+           xaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff'), 
+           yaxis = list( 
+             zerolinecolor = '#ffff', 
+             zerolinewidth = 2, 
+             gridcolor = 'ffff')) 
+  
+  annotations = list( 
+    list( 
+      x = 0.2,  
+      y = 1.0,  
+      text = "Acute Hepatitis",  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    ),  
+    list( 
+      x = 0.8,  
+      y = 1,  
+      text = "Diabetes",  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    ),  
+    list( 
+      x = 0.2,  
+      y = 0.45,  
+      text = "HIV",  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    ),
+    list( 
+      x = 0.8,  
+      y = 0.45,  
+      text = "Tuberculosis",  
+      xref = "paper",  
+      yref = "paper",  
+      xanchor = "center",  
+      yanchor = "bottom",  
+      showarrow = FALSE 
+    ))
+  
+  fig <- fig %>%layout(annotations = annotations) 
+  #options(warn = -1)
+  fig
+```
+
+##### Country Wise Life Expectancy
+
+```{r}
+library(plotly)
+library(quantmod)
+
+p <- ggplot(life_data,aes(Year, Life.expectancy, frame = Country,
+                          colour=Country)) +
+  geom_line(aes(linetype=Country))
+
+fig <- ggplotly(p) %>%
+  layout(
+    title = "countrywise Life Expectancy ",
+    yaxis = list(
+      title = "Life Expectancy",
+      
+      zeroline = F,
+      tickprefix = "$"
+    ),
+    xaxis = list(
+      title = "Year",
+      zeroline = F, 
+      showgrid = F
+    )
+  ) %>% 
+  
+  animation_opts(
+    frame = 100, 
+    transition = 0, 
+    redraw = FALSE
+  ) %>%
+  animation_slider(
+    currentvalue = list(
+      prefix = "Country "
+    )
+  )
+
+fig
+
+```

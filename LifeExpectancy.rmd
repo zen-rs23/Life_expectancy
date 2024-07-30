@@ -1,0 +1,396 @@
+## LIFE EXPECTANCY EDA & PREDICTION
+
+#### Load the required libraries
+
+```{r}
+
+#install.packages("ggplot2")
+
+#install.packages("plotly")
+#install.packages("GGally")
+library(ggplot2)
+library(GGally)
+library(tidyverse)
+library(plotly)
+
+```
+
+
+### Lets load the data set
+
+```{r}
+life_data <- read.csv('Life Expectancy Data.csv')
+```
+
+#### Column Names
+```{r}
+names(life_data)
+
+```
+
+
+#### Looking at the structure ,dimension and summary of the data set
+
+```{r}
+str(life_data)
+```
+
+```{r}
+dim(life_data) ##Shape of the data
+```
+
+```{r}
+summary(life_data) ##Description of the data
+```
+
+#### Lets have a look at our data sets
+```{r}
+head(life_data,5)
+```
+
+### Check if we have any null values
+```{r}
+colSums(is.na(life_data))
+```
+
+#### This gives us details of the null values ### in each column but doesnt provide in a 
+#### structured format so lets convert it into a data frame.
+
+```{r}
+as.data.frame(colSums(is.na(life_data)))
+```
+
+### Lets impute the null values with the mean values as we cant have too many null values
+
+```{r}
+life_data$Adult.Mortality[is.na(life_data$Adult.Mortality)] <- mean(life_data$Adult.Mortality, na.rm=TRUE)
+
+life_data$Life.expectancy[is.na(life_data$Life.expectancy)] <- mean(life_data$Life.expectancy, na.rm=TRUE)
+life_data$Alcohol[is.na(life_data$Alcohol)] <- mean(life_data$Alcohol, na.rm=TRUE)
+life_data$BMI[is.na(life_data$BMI)] <- mean(life_data$BMI, na.rm=TRUE)
+life_data$Polio[is.na(life_data$Polio)] <- mean(life_data$Polio, na.rm=TRUE)
+life_data$Hepatitis.B[is.na(life_data$Hepatitis.B)] <- mean(life_data$Hepatitis.B, na.rm=TRUE)
+life_data$Total.expenditure[is.na(life_data$Total.expenditure)] <- mean(life_data$Total.expenditure, na.rm=TRUE)
+life_data$Diphtheria[is.na(life_data$Diphtheria)] <- mean(life_data$Diphtheria, na.rm=TRUE)
+life_data$GDP[is.na(life_data$GDP)] <- mean(life_data$GDP, na.rm=TRUE)
+life_data$Population[is.na(life_data$Population)] <- mean(life_data$Population, na.rm=TRUE)
+life_data$Income.composition.of.resources[is.na(life_data$Income.composition.of.resources)] <- mean(life_data$Income.composition.of.resources, na.rm=TRUE)
+life_data$Schooling[is.na(life_data$Schooling)] <- mean(life_data$Schooling, na.rm=TRUE)
+life_data$thinness..1.19.years[is.na(life_data$thinness..1.19.years)] <- mean(life_data$thinness..1.19.years, na.rm=TRUE)
+life_data$thinness.5.9.years[is.na(life_data$thinness.5.9.years)] <- mean(life_data$thinness.5.9.years, na.rm=TRUE)
+
+```
+
+### Verifying the imputation 
+
+```{r}
+as.data.frame(colSums(is.na(life_data)))
+```
+
+## Correlation between the independent and dependent variables
+
+```{r}
+##Taking only the numeric values from the data
+data_num <- life_data %>% 
+  select_if(is.numeric)
+
+ggcorr(data_num, 
+       label = T, 
+       label_size = 2,
+       label_round = 2,
+       hjust = 1,
+       size = 3, 
+       color = "royalblue",
+       layout.exp = 5,
+       low = "blue", 
+       mid = "red", 
+       high = "darkorange",
+       name = "Correlation")
+```
+
+#### The Life.expectancy as dependent variable has somewhat strong positive correlation with Schooling 
+#### and Income.composition.of.resources.
+
+```{r}
+income <- ggplot(life_data, aes(Life.expectancy,Income.composition.of.resources,color=Life.expectancy))+
+  geom_point()+
+  geom_smooth(se=F)+
+  theme_bw()
+
+income + ggtitle("Life Expectancy Vs Income")
+
+```
+
+####  On the other hand, it has negative correlation with Adult.Mortality. And this is a valid finding, 
+#### because if mortality rate of adult is high, of course the life expectancy of people will be low.
+#### Life.expectancy also has a very weak correlation with Population and the Measles. We will test it 
+#### further on the next analysis.
+
+#### And based on the Corr Matrix, we can see there is very strong correlation between infant.deaths 
+#### and the under_5.deaths. This strong correlation indicates multicollinearity among them. period.
+
+
+
+#### Lets check the categorical values
+#### Status varialble
+
+#### plotting a Life Expectancy histogram
+
+```{r}
+hist(life_data$Life.expectancy, col="darkmagenta", main="Life Expectancy Data")
+
+```
+
+```{r}
+life_data %>% 
+                 group_by(Status) %>% 
+                 summarise(count = n()) %>% 
+                 mutate(percentage  = paste0(round(count/sum(count)*100, 2), "%"))
+```
+
+
+
+### Visualisation for the above values
+
+```{r}
+status_plot <-  ggplot(life_data, aes(x=Status, y = Life.expectancy, fill = Status)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("green3", "darkorange")) +
+  labs(x = "Development Status", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+ggplotly(status_plot)
+```
+
+## Life Expectancy vs Adult Mortality
+
+```{r}
+scatt <- plot_ly(data = life_data,x=~Life.expectancy,
+               y = ~Adult.Mortality, color=~Country,
+               text = ~paste("Mortality", Adult.Mortality ,'$<br>Country:',Country))
+
+scatt
+```
+
+### Life Expectancy and Percetage Expenditure by each Country
+
+```{r}
+expenditure_country <- plot_ly(life_data,x=~Life.expectancy,
+               y = ~percentage.expenditure, color=~Country,
+               text = ~paste("Expenditure", percentage.expenditure ,'$<br>Country:',Country)) %>%
+  layout(title="Life Expectancy vs Percentage Expenditure")
+  
+
+expenditure_country
+```
+
+### Life Expectancy VS Schooling based on Country year wise
+
+```{r}
+library(gapminder) #Animation package
+
+schooling_country <- plot_ly(life_data,x=~Life.expectancy,
+                               y = ~Schooling, color=~Country,
+                               text = ~paste("Schooling", Schooling ,'$<br>Country:',Country),
+                             frame = ~Year, type='scatter',mode='markers') %>%
+  layout(title="Life Expectancy vs Schooling of countries")
+
+schooling_country <- schooling_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+schooling_country
+
+```
+
+### Life Expectancy VS GDP of country Year wise
+
+```{r}
+gdp_country <- plot_ly(life_data,x=~Life.expectancy,
+                             y = ~GDP, color=~Country,
+                             text = ~paste("GDP", GDP ,'$<br>Country:',Country),
+                             frame = ~Year, type='scatter',mode='markers') %>%
+  layout(title="Life Expectancy vs GDP of countries in every year")
+
+gdp_country <- gdp_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+gdp_country
+
+```
+
+### Life Expectancy VS Adult Mortality basd on country year Wise
+
+```{r}
+
+mortality_country <- plot_ly(life_data,x=~Life.expectancy,
+                       y = ~Adult.Mortality, color=~Country,
+                       text = ~paste("Adult Mortality", Adult.Mortality ,'$<br>Country:',Country),
+                       frame = ~Year, type='scatter',mode='markers',
+                       marker = list(size=15)) 
+
+mortality_country <- mortality_country %>% layout(title="Life Expectancy Vs Adult Mortality Year Wise")
+mortality_country <- mortality_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+mortality_country
+```
+
+### Infant Deaths Based on Country 
+
+```{r}
+infants_country <- plot_ly(life_data,x=~Life.expectancy,
+                             y = ~infant.deaths, color=~Country,
+                             text = ~paste("Adult Mortality", infant.deaths ,'$<br>Country:',Country),
+                             frame = ~Year, type='scatter',mode='markers',
+                             marker = list(size=15)) 
+
+infants_country <- infants_country %>% layout(title="Life Expectancy Vs Infant Deaths based on Country Year Wise")
+infants_country <- infants_country %>% layout(
+  xaxis = list(
+    type = "log"
+  )
+)
+
+infants_country
+```
+
+
+##### As stated on The Global Vaccine Action Plan 2011–2020 (GVAP), endorsed by the World Health 
+##### Assembly in 2012, all countries need to reach ≥90% national coverage for all vaccines in the ##### country’s routine immunization schedule by 2020. Based on that statement, we are going to mutate ##### the Hepatitis.B, Polio, and Diphtheria into a categorical variable, with 2 value: “Under 90% ##### Covered” and “Covered by 90% or More”. By doing this, hopefully we can get a better view on the ##### immunization impact to Life.expectancy.
+
+
+
+```{r}
+life_data <- life_data %>% 
+  select(-Country, -Year) %>% 
+  mutate(Hepatitis.B = ifelse(Hepatitis.B < 90, "<90% Covered", ">=90% Covered"),
+         Polio = ifelse(Polio < 90, "<90% Covered", ">=90% Covered"),
+         Diphtheria = ifelse(Diphtheria < 90, "<90% Covered", ">=90% Covered"),
+         Hepatitis.B = as.factor(Hepatitis.B),
+         Polio = as.factor(Polio),
+         Diphtheria = as.factor(Diphtheria))
+
+str(life_data)
+```
+
+
+#### HEPATITIS COVERAGE
+
+```{r}
+life_data %>% 
+  group_by(Hepatitis.B) %>% 
+  summarise(count = n()) %>% 
+  mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+
+library(ggplot2)
+hep_plot <-  ggplot(life_data, aes(x=Hepatitis.B, y = Life.expectancy, fill = Hepatitis.B,
+                                )) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("red", "blue")) +
+  labs(x = "Hepatitis B Coverage", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(hep_plot)
+```
+
+##### Lets check the summary of the hepatitis coverage
+```{r}
+summary(aov(Life.expectancy ~ Hepatitis.B, data = life_data))
+
+```
+
+
+###### Observations: On the Hepatitis.B Coverage, higher Life.expectancy lies on the Countries which
+###### cover their Hepatitis.B immunization on 90% or more, with a big Median distance
+
+##### POLIO COVERAGE
+
+```{r}
+life_data %>% 
+                 group_by(Polio) %>% 
+                 summarise(count = n()) %>% 
+                 mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+```
+
+```{r}
+polio_plot <-  ggplot(life_data, aes(x=Polio, y = Life.expectancy, fill = Polio)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("darkolivegreen3", "dodgerblue3")) +
+  labs(x = "Polio Coverage", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(polio_plot)
+```
+
+```{r}
+summary(aov(Life.expectancy ~ Polio, data = life_data))
+```
+
+##### Obs: Better than the Hepatitis.B Coverage, the Polio Coverage are larger.
+
+
+#### DIPTHERIA
+```{r}
+life_data %>% 
+                 group_by(Diphtheria) %>% 
+                 summarise(count = n()) %>% 
+                 mutate(percentage = paste0(round(count/sum(count)*100, 2), "%"))
+```
+
+```{r}
+diptheria_plot <-  ggplot(life_data, aes(x=Diphtheria, y = Life.expectancy, fill = Diphtheria)) +
+  geom_boxplot() +
+  scale_fill_manual(values=c("orange", "green")) +
+  labs(x = "Diphtheria Coverage", y = "Life Expectancy (Age)") +
+  theme(legend.position = "none")
+
+
+ggplotly(diptheria_plot)
+```
+
+```{r}
+summary(aov(Life.expectancy ~ Diphtheria, data = life_data))
+```
+
+#### The Diphteria Coverage are the same like Polio Coverage in term of number of Countries.
+
+
+###### ASSOCIATION BETWEEN CATEGORICAL VARIABLES (Hepatitis B)
+
+```{r}
+devtools::install_github("haleyjeppson/ggmosaic")
+
+library(ggmosaic)
+fig <-  ggplot(life_data) +
+  geom_mosaic(aes(x = product(Status), fill=Hepatitis.B)) +
+  labs(x = NULL, y = NULL) +
+  scale_fill_manual(values=c("hotpink3", "hotpink4")) +
+  theme(legend.position = "none")
+
+ggplotly(fig) 
+```
+
+
+###### Polio Coverage
+
+```{r}
+
+polio_plot2 <-  ggplot(life_data) +
+  geom_mosaic(aes(x = product(Status), fill=Polio)) +
+  labs(x = NULL, y = NULL) +
+  scale_fill_manual(values=c("violetred3", "slateblue3")) +
+  theme(legend.position = "none")
+
+ggplotly(polio_plot2)
+```

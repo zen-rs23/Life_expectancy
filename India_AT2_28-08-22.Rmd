@@ -1,0 +1,58 @@
+---
+title: 'Life Expectancy : Prediction'
+date: "2022-08-27"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+# Vision
+Life Expectancy measures the average time a human being is expected to live based on different parameters. Everything has an expiration date; humans are no exception either.  Our proposal today is to predict the life expectancy of a person given the essential parameters with the help of machine learning models. Life expectancy is affected by a variety of socioeconomic, genetic, and environmental factors such as current age, gender, environment, Medical History, Lifestyle Choices, Ethnicity, Race, and many more. When Interpreting Life Expectancy, expect that very few people might die at the expected or precise age indicated by the life expectancy prediction. Therefore, it makes for a good area of study to investigate via statistical methods to better understand the measure of life expectancy as good prediction helps determine the course of treatment, helps in the procurement of medical services and facilities, and probably improves the quality of the final phase of the life cycle. 
+
+# Stakeholders
+1. This  study would be beneficial for the general public in a broader way that every individual may be curious and would like to know how much they would be living based on the parameters discussed in our analysis.
+2. Government health bodies and private organizations would be interested in our findings which would help them give an understanding of where they are standing in terms of life expectancy of their individual and whether they should be increasing their health expenditure to address issues which might affect the life expectancy of their individuals.
+
+# Research Questions
+
+Our analysis aims to answer the following research questions:
+
+1. Which area should a country focus on to efficiently improve the life expectancy of its population?
+2. What is the overall average life expectancy in most countries?
+3. Do developed countries have more life expectancy than developing countries?
+4. After what amount of alcohol per capita consumption does the life expectancy increase? Does Life Expectancy have a positive or negative correlation with eating habits, lifestyle, exercise, smoking, drinking alcohol, etc?
+5. What is the ideal range of population for any country to have a higher life expectancy?
+6. What is the impact of schooling on the lifespan of humans?
+7. How do Infant and Adult mortality rates affect life expectancy?
+8. By what age do the organisations need to provide incentives or guidance as the employees age so that they can have a good state of living?
+
+# Dataset range 
+Past studies were conducted on the above dataset which was for the period 2000 to 2015, but in our analysis we have included data for the period 2000 to 2020 by researching various datasets from the public domain extracting and exploring other important parameters believed to affect the life expectancy prediction.  These datasets that were acquired and merged to form a final dataset with variables as described below.
+
+Variables | Description
+--------- | -----------
+Country   | Name of countries used for analyzing life expectancy. Total of 193 countries are used for analysis.
+Year      | It has the year in which the particular data points are recorded.
+Infant Mortality | It shows the mortality rate of an Infant.
+Population| It provides the population of a particular country under analysis.
+GDP       | Expenditure on health as a percentage of Gross Domestic Product per capita(%)
+Number of executions(Amnesty International)| 
+Deaths -XXX| Deaths caused because of different diseases/incidents.
+
+# Exploratory Data Analysis
+
+
+# Modelling Techniques Used
+There are bunch of algorithms that can be utilized, but not every algorithm can provide superior results. There is always a trade-off between explainability, complexity and accuracy, and no such thing as an ideal algorithm exists. For modelling technique we will be using Multiple Linear Regression, Support Vector Regression, k Nearest regression and XG Boost.
+
+# Issues being anticipated
+1. Issues might arise while merging the datasets collected from different sources.
+2. Issues might arrive because of imbalanced datasets while training the regression model.
+3. We might not have enough data for training and testing the model, which might result in Overfitting/Underfitting models.
+
+# Appendix
+
+# References
+
+
